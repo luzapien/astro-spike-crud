@@ -16,12 +16,12 @@ const products = await apiProducts.getProducts();
 
     <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 1.5rem;">
       {products.map((product: any) => (
-        <div style="border: 1px solid #eaeaea; border-radius: 8px; padding: 1rem; background: #fff;">
+        <divsec style="border: 1px solid #eaeaea; border-radius: 8px; padding: 1rem; background: #fff;">
           <img src={product.thumbnail} alt={product.title} style="width: 100%; height: 150px; object-fit: cover; border-radius: 4px;" />
           <h3>{product.title}</h3>
           <p style="color: #666; font-size: 0.9rem;">{product.description.slice(0, 60)}...</p>
           <p style="font-weight: bold; color: #0070f3;">${product.price}</p>
-        </div>
+        </divsec>
       ))}
     </div>
   </main>

@@ -1,12 +1,24 @@
 ---
-import ProductsList from '../components/ProductsList.astro';
-import Welcome from '../components/Welcome.astro';
+import HeaderEditor from '../components/HederEditor';
+import ProductManager from '../components/ProductManager';
+import PostManager from '../components/PostManager';
 import Layout from '../layouts/Layout.astro';
 
-// Welcome to Astro! Wondering what to do next? Check out the Astro documentation at https://docs.astro.build
-// Don't want to use any of this? Delete everything in this file, the `assets`, `components`, and `layouts` directories, and start fresh.
+const response = await fetch('http://localhost:4321/api/products');
+const siteData = await response.json();
 ---
 
-<Layout>
-	<ProductsList />
+<Layout title="Admin Demo - Astro & React">
+  <main style={{ maxWidth: "1200px", margin: "0 auto", padding: "2rem" }}>
+    <HeaderEditor 
+      initialHeader={siteData.landing.header} 
+      client:load 
+    />
+
+    <ProductManager initialProducts={siteData.products} client:load />
+
+    <hr style={{ margin: "3rem 0", border: 0, borderTop: "1px solid #ddd" }} />
+
+    <PostManager initialPosts={siteData.posts || []} client:load />
+  </main>
 </Layout>
