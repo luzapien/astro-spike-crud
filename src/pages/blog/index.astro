@@ -1,27 +1,67 @@
 ---
 import { getCollection } from "astro:content";
+import Layout from "../../layouts/Layout.astro";
+import BlogCard from "../../components/blog/BlogCard.astro";
 
 const posts = await getCollection("blog");
 ---
 
-<main>
-  <h1>Blog</h1>
+<Layout title="Blog">
+  <main class="blog-page">
+    <header class="blog-header">
+      <p class="eyebrow">ARTÍCULOS</p>
+      <h1>Blog</h1>
+      <p>
+        Noticias, ideas y contenido de nuestro equipo.
+      </p>
+    </header>
 
-  {
-    posts.map((post) => (
-      <article>
-        <h2>{post.data.title}</h2>
+    <section class="blog-list">
+      {
+        posts.map((post) => (
+          <BlogCard post={post} />
+        ))
+      }
+    </section>
+  </main>
+</Layout>
 
-        <p>{post.data.description}</p>
-
-        <p>
-          Por {post.data.author}
-        </p>
-
-        <a href={`/blog/${post.id}`}>
-          Leer artículo
-        </a>
-      </article>
-    ))
+<style>
+  .blog-page {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 4rem 1.5rem;
   }
-</main>
+
+  .blog-header {
+    margin-bottom: 3rem;
+    text-align: center;
+  }
+
+  .blog-header .eyebrow {
+    margin: 0 0 0.5rem;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    color: #6b7280;
+  }
+
+  .blog-header h1 {
+    margin: 0;
+    font-size: 3rem;
+    line-height: 1.1;
+    color: #111827;
+  }
+
+  .blog-header > p:last-child {
+    margin: 1rem auto 0;
+    max-width: 600px;
+    color: #6b7280;
+    line-height: 1.6;
+  }
+
+  .blog-list {
+    display: grid;
+    gap: 1.5rem;
+  }
+</style>

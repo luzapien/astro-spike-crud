@@ -1,57 +1,59 @@
 import { useState } from "react";
-import { apiProducts } from "../api/products";
+import { apiProducts } from "../../api/products";
 import ProductCard from "./ProductCard";
+import type { Product } from "../../interfaces/generalData";
 
-export default function ProductManager({ initialProducts }) {
-  const [products, setProducts] = useState(initialProducts);
-  console.log(products)
+interface ProductManagerProps {
+  initialProducts: Product[];
+}
+
+export default function ProductManager({ initialProducts }: ProductManagerProps) {
+  const [products, setProducts] = useState<Product[]>(initialProducts);
   const [isOpen, setIsOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [mensaje, setMensaje] = useState({ text: "", type: "" });
 
-  // Estado para saber si estamos editando un producto (guarda el ID o null)
-  const [editingId, setEditingId] = useState(null);
+  const [editingId, setEditingId] = useState<number | null>(null);
 
-  // Campos del formulario
   const [form, setForm] = useState({
     title: "",
-    price: "",
+    price: "" as string | number,
     description: "",
     thumbnail: "",
   });
 
-  const handleChange = (e) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-  const handleImageChange = (e) => {
-    const file = e.target.files[0];
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
     if (file) {
       const objectUrl = URL.createObjectURL(file);
       setForm({ ...form, thumbnail: objectUrl });
     }
   };
 
-  // Abrir modal para CREAR
+  // Open modal to CREATE
   const handleOpenCreate = () => {
     setEditingId(null);
     setForm({ title: "", price: "", description: "", thumbnail: "" });
     setIsOpen(true);
   };
 
-  // Abrir modal para EDITAR (precarga los datos del producto)
-  const handleOpenEdit = (product) => {
+  // Open modal to EDIT (Preload data)
+  const handleOpenEdit = (product: Product) => {
     setEditingId(product.id);
     setForm({
-      title: product.title || "",
-      price: product.price || "",
+      title: product.title,
+      price: product.price,
       description: product.description || "",
       thumbnail: product.thumbnail || "",
     });
     setIsOpen(true);
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setMensaje({
@@ -61,21 +63,22 @@ export default function ProductManager({ initialProducts }) {
 
     try {
       if (editingId) {
-        const updatedProduct = await apiProducts.editPtoduct(editingId, {
+        const updatedProduct = await apiProducts.editPtoduct({
+          id: editingId,
           title: form.title,
           price: Number(form.price),
           description: form.description,
           thumbnail: form.thumbnail,
         });
+        
         setProducts(
           products.map((p) =>
-            p.id === editingId ? { ...p, ...updatedProduct } : p,
-          ),
+            p.id === editingId ? { ...p, ...updatedProduct } : p
+          )
         );
 
         setMensaje({ text: "¡Producto actualizado con éxito!", type: "green" });
       } else {
-        // Lógica de Creación usando tu capa de servicios hacia tu API de Astro
         const newProduct = await apiProducts.postProducts({
           title: form.title,
           price: Number(form.price),
@@ -102,6 +105,7 @@ export default function ProductManager({ initialProducts }) {
       setLoading(false);
     }
   };
+
   return (
     <main style={{ maxWidth: "1200px", margin: "0 auto", padding: "2rem" }}>
       <h1>Catálogo de Productos (Demo CRUD con React)</h1>
@@ -129,9 +133,9 @@ export default function ProductManager({ initialProducts }) {
           gap: "1.5rem",
         }}
       >
-        {products.map((product, index) => (
+        {products.map((product) => (
           <ProductCard
-            key={product.id || index}
+            key={product.id}
             product={product}
             onEdit={handleOpenEdit}
           />
@@ -192,13 +196,7 @@ export default function ProductManager({ initialProducts }) {
               style={{ display: "flex", flexDirection: "column", gap: "1rem" }}
             >
               <div>
-                <label
-                  style={{
-                    display: "block",
-                    marginBottom: "0.3rem",
-                    fontWeight: 500,
-                  }}
-                >
+                <label style={{ display: "block", marginBottom: "0.3rem", fontWeight: 500 }}>
                   Título del Producto:
                 </label>
                 <input
@@ -207,23 +205,11 @@ export default function ProductManager({ initialProducts }) {
                   value={form.title}
                   onChange={handleChange}
                   required
-                  style={{
-                    width: "100%",
-                    padding: "0.5rem",
-                    boxSizing: "border-box",
-                    border: "1px solid #ccc",
-                    borderRadius: "4px",
-                  }}
+                  style={{ width: "100%", padding: "0.5rem", boxSizing: "border-box", border: "1px solid #ccc", borderRadius: "4px" }}
                 />
               </div>
               <div>
-                <label
-                  style={{
-                    display: "block",
-                    marginBottom: "0.3rem",
-                    fontWeight: 500,
-                  }}
-                >
+                <label style={{ display: "block", marginBottom: "0.3rem", fontWeight: 500 }}>
                   Precio ($):
                 </label>
                 <input
@@ -233,23 +219,11 @@ export default function ProductManager({ initialProducts }) {
                   value={form.price}
                   onChange={handleChange}
                   required
-                  style={{
-                    width: "100%",
-                    padding: "0.5rem",
-                    boxSizing: "border-box",
-                    border: "1px solid #ccc",
-                    borderRadius: "4px",
-                  }}
+                  style={{ width: "100%", padding: "0.5rem", boxSizing: "border-box", border: "1px solid #ccc", borderRadius: "4px" }}
                 />
               </div>
               <div>
-                <label
-                  style={{
-                    display: "block",
-                    marginBottom: "0.3rem",
-                    fontWeight: 500,
-                  }}
-                >
+                <label style={{ display: "block", marginBottom: "0.3rem", fontWeight: 500 }}>
                   Descripción
                 </label>
                 <textarea
@@ -257,37 +231,18 @@ export default function ProductManager({ initialProducts }) {
                   value={form.description}
                   onChange={handleChange}
                   required
-                  style={{
-                    width: "100%",
-                    padding: "0.5rem",
-                    boxSizing: "border-box",
-                    border: "1px solid #ccc",
-                    borderRadius: "4px",
-                  }}
+                  style={{ width: "100%", padding: "0.5rem", boxSizing: "border-box", border: "1px solid #ccc", borderRadius: "4px" }}
                 />
               </div>
               <div>
-                <label
-                  style={{
-                    display: "block",
-                    marginBottom: "0.3rem",
-                    fontWeight: 500,
-                  }}
-                >
+                <label style={{ display: "block", marginBottom: "0.3rem", fontWeight: 500 }}>
                   Imagen desde tu Computadora:
                 </label>
                 <input
                   type="file"
                   accept="image/*"
                   onChange={handleImageChange}
-                  style={{
-                    width: "100%",
-                    padding: "0.5rem",
-                    boxSizing: "border-box",
-                    border: "1px solid #ccc",
-                    borderRadius: "4px",
-                    background: "#f9f9f9",
-                  }}
+                  style={{ width: "100%", padding: "0.5rem", boxSizing: "border-box", border: "1px solid #ccc", borderRadius: "4px", background: "#f9f9f9" }}
                 />
                 <small style={{ color: "#666", fontSize: "0.8rem" }}>
                   * Sube una nueva imagen si deseas reemplazarla.
@@ -309,11 +264,7 @@ export default function ProductManager({ initialProducts }) {
                   opacity: loading ? 0.7 : 1,
                 }}
               >
-                {loading
-                  ? "Guardando..."
-                  : editingId
-                    ? "Actualizar Producto"
-                    : "Guardar Producto"}
+                {loading ? "Guardando..." : editingId ? "Actualizar Producto" : "Guardar Producto"}
               </button>
             </form>
 
@@ -323,12 +274,7 @@ export default function ProductManager({ initialProducts }) {
                   marginTop: "1rem",
                   textAlign: "center",
                   fontSize: "0.9rem",
-                  color:
-                    mensaje.type === "green"
-                      ? "green"
-                      : mensaje.type === "red"
-                        ? "red"
-                        : "#0070f3",
+                  color: mensaje.type === "green" ? "green" : mensaje.type === "red" ? "red" : "#0070f3",
                 }}
               >
                 {mensaje.text}

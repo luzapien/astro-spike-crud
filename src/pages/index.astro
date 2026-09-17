@@ -1,24 +1,37 @@
 ---
-import HeaderEditor from '../components/HederEditor';
-import ProductManager from '../components/ProductManager';
-import PostManager from '../components/PostManager';
-import Layout from '../layouts/Layout.astro';
+import HeaderEditor from "../components/landing/HederEditor";
+import ProductManager from "../components/products/ProductManager";
+import PostManager from "../components/products/PostManager";
+import Layout from "../layouts/Layout.astro";
+import NavbarMenu from "../components/landing/Navbar";
 
-const response = await fetch('http://localhost:4321/api/products');
-const siteData = await response.json();
+const productsResponse = await fetch("http://localhost:4321/api/products");
+
+const productsData = await productsResponse.json();
+
+const postsResponse = await fetch("http://localhost:4321/api/posts");
+
+const postsData = await postsResponse.json();
 ---
 
 <Layout title="Admin Demo - Astro & React">
   <main style={{ maxWidth: "1200px", margin: "0 auto", padding: "2rem" }}>
-    <HeaderEditor 
-      initialHeader={siteData.landing.header} 
-      client:load 
+    <NavbarMenu client:load />
+    <HeaderEditor initialHeader={productsData.landing.header} client:load />
+
+    <ProductManager initialProducts={productsData.products} client:load />
+
+    <hr
+      style={{
+        margin: "3rem 0",
+        border: 0,
+        borderTop: "1px solid #ddd",
+      }}
     />
 
-    <ProductManager initialProducts={siteData.products} client:load />
-
-    <hr style={{ margin: "3rem 0", border: 0, borderTop: "1px solid #ddd" }} />
-
-    <PostManager initialPosts={siteData.posts || []} client:load />
+    <!-- <PostManager
+      initialPosts={postsData.posts || []}
+      client:load
+    /> -->
   </main>
 </Layout>

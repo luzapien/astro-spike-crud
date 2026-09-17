@@ -1,72 +1,158 @@
 import fs from "node:fs";
 import path from "node:path";
+import { getCollection } from "astro:content";
 
-// 1. GET: Returns a list of all existing posts
+function generateSlug(title: string) {
+  return title
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
+// GET: obtener todos los posts
 export async function GET() {
   try {
-    const postsDir = path.resolve("src/pages/post");
+    const posts = await getCollection("blog");
 
-    // If the directory doesn't exist yet, return an empty array
-    if (!fs.existsSync(postsDir)) {
-      return new Response(JSON.stringify({ posts: [] }), { status: 200 });
-    }
+    const formattedPosts = posts.map((post) => ({
+      id: post.id,
+      slug: post.id,
+      title: post.data.title,
+      description: post.data.description,
+      author: post.data.author,
+      pubDate: post.data.pubDate,
+      image: post.data.image || "",
+    }));
 
-    const files = fs.readdirSync(postsDir);
-    const posts = files
-      .filter((file) => file.endsWith(".mdx") || file.endsWith(".md"))
-      .map((file) => {
-        const filePath = path.join(postsDir, file);
-        const fileContent = fs.readFileSync(filePath, "utf-8");
-
-        // Simple extraction of frontmatter properties for the list view
-        const titleMatch = fileContent.match(/title:\s*"([^"]*)"/);
-        const descMatch = fileContent.match(/description:\s*"([^"]*)"/);
-        const authorMatch = fileContent.match(/author:\s*"([^"]*)"/);
-        const dateMatch = fileContent.match(/pubDate:\s*"([^"]*)"/);
-        const slug = file.replace(/\.mdx?$/, "");
-
-        return {
-          id: slug,
-          slug: slug,
-          title: titleMatch ? titleMatch[1] : slug,
-          description: descMatch ? descMatch[1] : "",
-          author: authorMatch ? authorMatch[1] : "",
-          pubDate: dateMatch ? dateMatch[1] : "",
-        };
-      });
-
-    return new Response(JSON.stringify({ posts }), {
-      status: 200,
-      headers: { "Content-Type": "application/json" },
-    });
-  } catch (error) {
     return new Response(
-      JSON.stringify({ posts: [], error: "Error reading posts" }),
-      { status: 500 },
+      JSON.stringify({
+        posts: formattedPosts,
+      }),
+      {
+        status: 200,
+        headers: {
+          "Content-Type": "application/json",
+        },
+      },
+    );
+  } catch (error) {
+    console.error("Error reading posts:", error);
+
+    return new Response(
+      JSON.stringify({
+        posts: [],
+        error: "Error reading posts",
+      }),
+      {
+        status: 500,
+        headers: {
+          "Content-Type": "application/json",
+        },
+      },
     );
   }
 }
 
-// 2. POST: Creates the new .mdx file (keeps your existing code)
+// POST: crear un nuevo post
 export async function POST({ request }) {
-  const data = await request.json();
+  try {
+    const data = await request.json();
 
-  const fileContent = `---
-layout: ../../layouts/PostLayout.astro
-title: "${data.title}"
-description: "${data.description}"
-author: "${data.author}"
-pubDate: "${data.pubDate}"
-image: "${data.image}"
-slug: "${data.slug}"
+    // Validación básica
+    if (!data.title || !data.description || !data.author || !data.content) {
+      return new Response(
+        JSON.stringify({
+          error: "Faltan campos obligatorios",
+        }),
+        {
+          status: 400,
+          headers: {
+            "Content-Type": "application/json",
+          },
+        },
+      );
+    }
+
+    // Generamos el slug automáticamente a partir del título
+    const slug = generateSlug(data.title);
+
+    // Directorio donde guardaremos los blogs
+    const postsDir = path.resolve("src/content/blog");
+
+    // Crear el directorio si no existe
+    if (!fs.existsSync(postsDir)) {
+      fs.mkdirSync(postsDir, { recursive: true });
+    }
+
+    // Contenido del archivo Markdown
+    const fileContent = `---
+title: ${JSON.stringify(data.title)}
+description: ${JSON.stringify(data.description)}
+author: ${JSON.stringify(data.author)}
+pubDate: ${JSON.stringify(data.pubDate)}
+image: ${JSON.stringify(data.image || "")}
 ---
+
 ${data.content}
 `;
 
-  const filePath = path.resolve(`src/pages/post/${data.slug}.mdx`);
-  fs.writeFileSync(filePath, fileContent);
+    const filePath = path.join(postsDir, `${slug}.md`);
 
-  return new Response(JSON.stringify({ success: true, post: data }), {
-    status: 200,
-  });
+    // Evitar sobrescribir un post existente
+    if (fs.existsSync(filePath)) {
+      return new Response(
+        JSON.stringify({
+          error: "Ya existe un post con ese título",
+        }),
+        {
+          status: 409,
+          headers: {
+            "Content-Type": "application/json",
+          },
+        },
+      );
+    }
+
+    fs.writeFileSync(filePath, fileContent, "utf-8");
+
+    const newPost = {
+      id: slug,
+      slug,
+      title: data.title,
+      description: data.description,
+      author: data.author,
+      pubDate: data.pubDate,
+      image: data.image || "",
+      content: data.content,
+    };
+
+    return new Response(
+      JSON.stringify({
+        success: true,
+        post: newPost,
+      }),
+      {
+        status: 201,
+        headers: {
+          "Content-Type": "application/json",
+        },
+      },
+    );
+  } catch (error) {
+    console.error("Error creating post:", error);
+
+    return new Response(
+      JSON.stringify({
+        error: "Error al crear el post",
+      }),
+      {
+        status: 500,
+        headers: {
+          "Content-Type": "application/json",
+        },
+      },
+    );
+  }
 }

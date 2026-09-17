@@ -1,4 +1,3 @@
-// src/components/ProductCard.jsx
 export default function ProductCard({ product, onEdit }) {
   return (
     <div
@@ -10,7 +9,6 @@ export default function ProductCard({ product, onEdit }) {
         background: "#fff",
       }}
     >
-      {/* Botón / Icono de Editar en la esquina superior derecha */}
       <button
         onClick={() => onEdit(product)}
         title="Editar producto"

@@ -1,15 +1,26 @@
 import { useState } from "react";
-import { apiProducts } from "../api/products";
+import { apiPosts } from "../../api/posts";
+
+// function generateSlug(title) {
+//   return title
+//     .toLowerCase()
+//     .normalize("NFD")
+//     .replace(/[\u0300-\u036f]/g, "")
+//     .replace(/[^a-z0-9]+/g, "-")
+//     .replace(/^-+|-+$/g, "");
+// }
+
 export default function PostManager({ initialPosts }) {
   const [posts, setPosts] = useState(initialPosts || []);
-  const [selectedPost, setSelectedPost] = useState(null); // <-- Tracks which post is open
   const [isOpen, setIsOpen] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [mensaje, setMensaje] = useState({ text: "", type: "" });
+  const [mensaje, setMensaje] = useState({
+    text: "",
+    type: "",
+  });
 
   const [form, setForm] = useState({
     title: "",
-    slug: "",
     author: "",
     description: "",
     pubDate: "",
@@ -24,13 +35,13 @@ export default function PostManager({ initialPosts }) {
   const handleOpenCreate = () => {
     setForm({
       title: "",
-      slug: "",
       author: "",
       description: "",
       pubDate: "",
       image: "",
       content: "",
     });
+
     setIsOpen(true);
   };
 
@@ -40,7 +51,11 @@ export default function PostManager({ initialPosts }) {
     setMensaje({ text: "Guardando post...", type: "blue" });
 
     try {
-      const newPost = await apiProducts.postPost(form);
+      // const postData = {
+      //   ...form,
+      //   slug: generateSlug(form.title),
+      // };
+      const newPost = await apiPosts.createPost(form);
       setPosts([newPost, ...posts]);
       setMensaje({ text: "¡Post creado con éxito!", type: "green" });
 
@@ -48,7 +63,6 @@ export default function PostManager({ initialPosts }) {
         setIsOpen(false);
         setForm({
           title: "",
-          slug: "",
           author: "",
           description: "",
           pubDate: "",
@@ -64,65 +78,6 @@ export default function PostManager({ initialPosts }) {
     }
   };
 
-  // IF A POST IS SELECTED, RENDER THE FULL BLOG VIEW INLINE
-  if (selectedPost) {
-    return (
-      <div
-        style={{
-          background: "white",
-          padding: "2rem",
-          borderRadius: "8px",
-          border: "1px solid #ddd",
-        }}
-      >
-        <button
-          onClick={() => setSelectedPost(null)}
-          style={{
-            background: "#6c757d",
-            color: "white",
-            padding: "0.5rem 1rem",
-            border: "none",
-            borderRadius: "4px",
-            cursor: "pointer",
-            marginBottom: "1.5rem",
-          }}
-        >
-          &larr; Volver a la lista de posts
-        </button>
-
-        <article>
-          <h1>{selectedPost.title}</h1>
-          <p style={{ color: "#666", fontStyle: "italic" }}>
-            Escrito por: {selectedPost.author} | Publicado el:{" "}
-            {selectedPost.pubDate}
-          </p>
-
-          {selectedPost.image && (
-            <img
-              src={selectedPost.image}
-              alt={selectedPost.title}
-              style={{
-                width: "100%",
-                maxHeight: "400px",
-                objectFit: "cover",
-                borderRadius: "6px",
-                margin: "1rem 0",
-              }}
-            />
-          )}
-
-          <hr
-            style={{
-              margin: "1.5rem 0",
-              border: "0",
-              borderTop: "1px solid #ddd",
-            }}
-          />
-          <p>{selectedPost.content}</p>
-        </article>
-      </div>
-    );
-  }
 
   // DEFAULT VIEW: LIST + CREATE BUTTON
   return (
@@ -153,37 +108,7 @@ export default function PostManager({ initialPosts }) {
         </button>
       </div>
 
-      {/* Lista de Posts Actuales */}
-      <ul
-        style={{ listStyle: "none", padding: 0, display: "grid", gap: "1rem" }}
-      >
-        {posts.map((post) => (
-          <li
-            key={post.id || post.slug}
-            style={{
-              background: "#f9f9f9",
-              padding: "1.25rem",
-              borderRadius: "6px",
-              border: "1px solid #ddd",
-            }}
-          >
-            {/* Clickable link pointing to the individual Astro MDX page route */}
-            <a
-              href={`/post/${post.slug}`}
-              style={{ textDecoration: "none", color: "#0070f3" }}
-            >
-              <h3 style={{ margin: "0 0 0.5rem 0" }}>{post.title} &rarr;</h3>
-            </a>
 
-            <p style={{ margin: "0 0 0.5rem 0", color: "#666" }}>
-              {post.description}
-            </p>
-            <small style={{ color: "#888" }}>
-              Autor: {post.author} | Fecha: {post.pubDate}
-            </small>
-          </li>
-        ))}
-      </ul>
 
       {/* Modal para Crear Post */}
       {isOpen && (
@@ -273,32 +198,6 @@ export default function PostManager({ initialPosts }) {
                     fontWeight: 500,
                   }}
                 >
-                  Slug:
-                </label>
-                <input
-                  type="text"
-                  name="slug"
-                  value={form.slug}
-                  onChange={handleChange}
-                  required
-                  style={{
-                    width: "100%",
-                    padding: "0.5rem",
-                    boxSizing: "border-box",
-                    border: "1px solid #ccc",
-                    borderRadius: "4px",
-                  }}
-                />
-              </div>
-
-              <div>
-                <label
-                  style={{
-                    display: "block",
-                    marginBottom: "0.3rem",
-                    fontWeight: 500,
-                  }}
-                >
                   Contenido (Markdown):
                 </label>
                 <textarea
@@ -307,7 +206,7 @@ export default function PostManager({ initialPosts }) {
                   value={form.content}
                   onChange={handleChange}
                   required
-                  placeholder="## Título de sección..."
+                  placeholder="Contenido"
                   style={{
                     width: "100%",
                     padding: "0.5rem",

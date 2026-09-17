@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { apiProducts } from "../api/products";
+import { apiProducts } from "../../api/products";
 
 export default function HeaderEditor({ initialHeader }) {
   const [header, setHeader] = useState(initialHeader);

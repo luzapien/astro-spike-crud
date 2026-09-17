@@ -7,11 +7,20 @@ import node from '@astrojs/node';
 
 import mdx from '@astrojs/mdx';
 
+import tailwindcss from '@tailwindcss/vite';
+
 // https://astro.build/config
 export default defineConfig({
-  output: 'server', // <-- Activa el SSR
+  // <-- Activa el SSR
+  output: 'server',
+
   adapter: node({
     mode: 'standalone'
   }),
-  integrations: [react(), mdx()]
+
+  integrations: [react(), mdx()],
+
+  vite: {
+    plugins: [tailwindcss()]
+  }
 });

@@ -1,0 +1,12 @@
+---
+import Layout from "../../layouts/Layout.astro";
+import BlogForm from "../../components/blog/BlogForm";
+---
+
+<Layout title="Administración de Blogs">
+  <main>
+    <h1>Administración de Blogs</h1>
+
+    <BlogForm client:load />
+  </main>
+</Layout>
