@@ -42,14 +42,8 @@ export default function BlogForm() {
         type: "green",
       });
 
-      setForm({
-        title: "",
-        author: "",
-        description: "",
-        pubDate: "",
-        image: "",
-        content: "",
-      });
+      // Navigate to the blog after successfully creating the post
+      window.location.href = "/blog";
     } catch (error) {
       console.error(error);
 

@@ -3,6 +3,19 @@ const { post } = Astro.props;
 ---
 
 <article class="blog-card">
+  {
+    post.data.image && (
+      <div class="blog-card-image-wrapper">
+        <img
+          class="blog-card-image"
+          src={post.data.image}
+          alt={post.data.title}
+          loading="lazy"
+        />
+      </div>
+    )
+  }
+
   <div class="blog-card-content">
     <p class="blog-card-category">BLOG</p>
 
@@ -19,12 +32,7 @@ const { post } = Astro.props;
         Por {post.data.author}
       </p>
 
-      <a
-        class="blog-card-link"
-        href={`/blog/${post.id}`}
-      >
-        Leer artículo →
-      </a>
+      <a class="blog-card-link" href={`/blog/${post.id}`}> Leer artículo → </a>
     </div>
   </div>
 </article>
@@ -46,6 +54,25 @@ const { post } = Astro.props;
   .blog-card:hover {
     transform: translateY(-3px);
     box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+  }
+
+  .blog-card-image-wrapper {
+    width: 100%;
+    height: 280px;
+    overflow: hidden;
+    background: #f3f4f6;
+  }
+
+  .blog-card-image {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+  }
+
+  .blog-card:hover .blog-card-image {
+    transform: scale(1.03);
   }
 
   .blog-card-content {
@@ -101,6 +128,10 @@ const { post } = Astro.props;
   }
 
   @media (max-width: 600px) {
+    .blog-card-image-wrapper {
+      height: 200px;
+    }
+
     .blog-card-footer {
       flex-direction: column;
       align-items: flex-start;

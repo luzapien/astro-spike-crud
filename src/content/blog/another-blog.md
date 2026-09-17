@@ -3,7 +3,7 @@ title: "Another Blog"
 description: "Descripción de mi segundo blog."
 author: "María"
 pubDate: 2026-09-09
-image: "/images/blog.jpg"
+image: "https://images.pexels.com/photos/2882507/pexels-photo-2882507.jpeg"
 ---
 
 # Another Blog
